@@ -1,143 +1,149 @@
-📋 Overview
+# Employee Attendance Tracker
+
 A Windows Forms application for tracking employee attendance with secure authentication and role-based access control.
 
-✨ Key Features
-🔐 Dual-Role Authentication: Separate interfaces for employees and administrators
+---
 
-🔒 Secure Login System: Employee ID and password-based authentication
+## Features
 
-📊 Flexible Status Tracking: Employees can mark daily attendance as "Present" or "Absent"
+- **Dual-Role Authentication** — Separate interfaces for employees and administrators
+- **Secure Login System** — Employee ID and password-based authentication
+- **Flexible Status Tracking** — Employees can mark daily attendance as Present or Absent
+- **Admin Dashboard** — Comprehensive view of all employee attendance records with date filtering
+- **Real-Time Database Operations** — Modern `Microsoft.Data.SqlClient` for efficient connectivity
+- **User-Friendly Interface** — Intuitive Windows Forms design for ease of use
 
-👨‍💼 Admin Dashboard: Comprehensive view of all employee attendance records with date filtering
+---
 
-⚡ Real-Time Database Operations: Modern Microsoft.Data.SqlClient for efficient database connectivity
+## Tech Stack
 
-🎨 User-Friendly Interface: Intuitive Windows Forms design for ease of use
+| Layer | Technology |
+|---|---|
+| Backend | C# / .NET Framework |
+| Frontend | Windows Forms |
+| Database | Microsoft SQL Server |
+| Data Access | Microsoft.Data.SqlClient |
+| Configuration | App.config |
 
-🛠️ Technologies Used
-Backend: C# .NET Framework
+---
 
-Frontend: Windows Forms
+## Prerequisites
 
-Database: Microsoft SQL Server
+- .NET Framework 4.6.1 or later
+- SQL Server (LocalDB or full version)
+- Visual Studio 2019 or later
 
-Data Access: Microsoft.Data.SqlClient
+---
 
-Configuration: App.config for connection strings
+## Setup
 
-🚀 Installation & Setup
-Prerequisites
-.NET Framework 4.6.1 or later
+### 1. Database
 
-SQL Server (LocalDB or full version)
+Run the following SQL script to create and seed the database:
 
-Visual Studio 2019 or later
+```sql
+CREATE DATABASE EmployeeDB;
+GO
+USE EmployeeDB;
+GO
 
-* Database Setup
-+ CREATE DATABASE EmployeeDB;
-+ GO
-+ USE EmployeeDB;
-+ GO
+CREATE TABLE Employees (
+    EmployeeID INT PRIMARY KEY IDENTITY(1,1),
+    FirstName  NVARCHAR(50)  NOT NULL,
+    LastName   NVARCHAR(50)  NOT NULL,
+    Password   NVARCHAR(100) NOT NULL,
+    IsAdmin    BIT DEFAULT 0
+);
 
-* CREATE TABLE Employees (
-  +  EmployeeID INT PRIMARY KEY IDENTITY(1,1),
-  + FirstName NVARCHAR(50) NOT NULL,
-  + LastName NVARCHAR(50) NOT NULL,
-  + Password NVARCHAR(100) NOT NULL,
-  +  IsAdmin BIT DEFAULT 0
-+ );
+CREATE TABLE Attendance (
+    AttendanceID   INT PRIMARY KEY IDENTITY(1,1),
+    EmployeeID     INT FOREIGN KEY REFERENCES Employees(EmployeeID),
+    AttendanceDate DATE        NOT NULL,
+    Status         NVARCHAR(20) NOT NULL,
+    CONSTRAINT UC_EmployeeDate UNIQUE(EmployeeID, AttendanceDate)
+);
 
-* CREATE TABLE Attendance (
-   + AttendanceID INT PRIMARY KEY IDENTITY(1,1),
-   + EmployeeID INT FOREIGN KEY REFERENCES Employees(EmployeeID),
-   + AttendanceDate DATE NOT NULL,
-   + Status NVARCHAR(20) NOT NULL,
-   + CONSTRAINT UC_EmployeeDate UNIQUE(EmployeeID, AttendanceDate)
-+ );
+-- Sample data
+INSERT INTO Employees (FirstName, LastName, Password, IsAdmin) VALUES
+('Admin', 'User',  'admin123', 1),
+('Ahmet', 'Yılmaz', '12345',  0),
+('Ayşe',  'Kaya',   '12345',  0);
+```
 
-* -- Sample data
-+ INSERT INTO Employees (FirstName, LastName, Password, IsAdmin) VALUES
-+ ('Admin', 'User', 'admin123', 1),
-+ ('Ahmet', 'Yılmaz', '12345', 0),
-+ ('Ayşe', 'Kaya', '12345', 0);
+### 2. Application
 
-* Application Setup
-+ Clone or download the project
-+ Open the solution in Visual Studio
-+ Install required NuGet packages:
-  Microsoft.Data.SqlClient
-System.Configuration.ConfigurationManager
+1. Clone or download the project
+2. Open the solution in Visual Studio
+3. Install the required NuGet packages:
+   - `Microsoft.Data.SqlClient`
+   - `System.Configuration.ConfigurationManager`
+4. Update the connection string in `App.config`:
 
-* Update the connection string in App.config to match your SQL Server instance: <connectionStrings>
-   + <add .name="EmployeeDBConnection" 
+```xml
+<configuration>
+  <connectionStrings>
+    <add name="EmployeeDBConnection"
          connectionString="Server=(localdb)\MSSQLLocalDB;Database=EmployeeDB;Integrated Security=true;TrustServerCertificate=true;"
-         providerName="Microsoft.Data.SqlClient". />
-</connectionStrings>
-* Build and run the application
+         providerName="Microsoft.Data.SqlClient" />
+  </connectionStrings>
+</configuration>
+```
 
-* 📖 Usage
-Login
-Employees use their ID and password to access the system
+5. Build and run the application
 
-Admin users are redirected to the admin dashboard
+---
 
-Regular employees are directed to the employee form
+## Usage
 
-Employee Features
-Mark daily attendance as "Present" or "Absent"
+### Login
 
-View current status for the day
+Employees authenticate using their **Employee ID** and **password**. Based on the `IsAdmin` flag, they are redirected to either the admin dashboard or the employee form.
 
-Secure logout functionality
+### Employee View
 
-Admin Features
-View attendance records for all employees
+- Mark daily attendance as **Present** or **Absent**
+- View current attendance status for the day
+- Secure logout
 
-Filter records by specific dates
+### Admin View
 
-Monitor employee attendance patterns
+- View attendance records for all employees
+- Filter records by specific date
+- Monitor attendance patterns across the organization
 
-* 🗃️ Database Schema
-The system uses two main tables:
+---
 
-Employees Table: Stores employee information and credentials
+## Database Schema
 
-EmployeeID (Primary Key)
+### `Employees`
 
-FirstName
+| Column | Type | Description |
+|---|---|---|
+| EmployeeID | INT (PK, Identity) | Unique employee identifier |
+| FirstName | NVARCHAR(50) | First name |
+| LastName | NVARCHAR(50) | Last name |
+| Password | NVARCHAR(100) | Login password |
+| IsAdmin | BIT | Admin flag (0 = employee, 1 = admin) |
 
-LastName
+### `Attendance`
 
-Password
+| Column | Type | Description |
+|---|---|---|
+| AttendanceID | INT (PK, Identity) | Unique record identifier |
+| EmployeeID | INT (FK) | References `Employees.EmployeeID` |
+| AttendanceDate | DATE | Date of the attendance record |
+| Status | NVARCHAR(20) | `Present` or `Absent` |
 
-IsAdmin (boolean flag)
+> A unique constraint on `(EmployeeID, AttendanceDate)` prevents duplicate entries per day.
 
-Attendance Table: Records daily attendance status with date constraints
+---
 
-AttendanceID (Primary Key)
+## Project Structure
 
-EmployeeID (Foreign Key)
-
-AttendanceDate
-
-Status
-
-Unique constraint on EmployeeID and AttendanceDate
-* 📁 Code Structure
-LoginForm.cs: Handles user authentication
-
-EmployeeForm.cs: Provides interface for employees to mark attendance
-
-AdminForm.cs: Displays attendance records for administrators
-
-DatabaseHelper.cs: Manages database connections and operations
-
-* 🔧 Configuration
-Modify the connection string in App.config to match your environment:
-+ <configuration>
-    <connectionStrings>
-        <.add name="EmployeeDBConnection" 
-             connectionString="Your_Connection_String_Here"
-             providerName="Microsoft.Data.SqlClient". />
-    </connectionStrings>
- </configuration>
+```
+├── LoginForm.cs        # User authentication
+├── EmployeeForm.cs     # Employee attendance interface
+├── AdminForm.cs        # Admin dashboard
+├── DatabaseHelper.cs   # Database connection and query logic
+└── App.config          # Connection string configuration
+```
